@@ -17,7 +17,7 @@ services:
     binds:
       - /lzcapp/var/mongo:/data/db
     healthcheck:
-      test: ["CMD-SHELL", "mongosh --quiet --eval 'db.adminCommand(\"ping\")' || exit 1"]
+      test: ["CMD-SHELL", "mongosh --quiet --eval 1 || exit 1"]
       interval: 20s
       timeout: 10s
       retries: 10
