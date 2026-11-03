@@ -21,7 +21,9 @@ images:
     source: heyform/community-edition
     channel: stable
     sort: semver
-    tag_regex: ^[0-9]+[.][0-9]+[.][0-9]+$
+    # Upstream tags carry a "v" prefix (v3.0.6), so the optional v is required:
+    # without it no candidate matches and the action fails with VERSION_NOT_FOUND.
+    tag_regex: ^v?[0-9]+[.][0-9]+[.][0-9]+$
     delivery:
       mode: mirror
       require_digest_match: true
