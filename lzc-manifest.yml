@@ -8,7 +8,6 @@ application:
   upstreams:
     - location: /
       backend: http://heyform:9157/
-
 services:
   mongo:
     image: docker.1ms.run/library/mongo:8.0
@@ -22,7 +21,6 @@ services:
       timeout: 10s
       retries: 10
       start_period: 30s
-
   redis:
     image: docker.1ms.run/library/redis:8-alpine
     # Bull queue backend only; nothing here needs to survive a restart.
@@ -32,10 +30,9 @@ services:
       interval: 15s
       timeout: 10s
       retries: 10
-
   heyform:
-    # upstream: heyform/community-edition:3.0.6
-    image: docker.1ms.run/heyform/community-edition:3.0.6
+    # upstream: heyform/community-edition:v3.0.6
+    image: docker.1ms.run/heyform/community-edition:v3.0.6
     environment:
       - NODE_ENV=production
       # Must be the address users actually visit, otherwise login breaks
@@ -70,7 +67,6 @@ services:
     depends_on:
       - mongo
       - redis
-
 usage: |
   HeyForm 是表单搭建工具：用拖拽方式制作问卷、测验、投票和报名表，
   支持逻辑跳转、自定义主题，并查看和导出答卷。

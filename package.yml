@@ -1,6 +1,6 @@
 package: community.lazycat.app.heyform
 name: HeyForm
-version: 0.0.0
+version: 3.0.6
 description: "Form builder for surveys, quizzes and polls: drag-and-drop questions, logic jumps and response analytics."
 min_os_version: "1.5.0"
 homepage: https://heyform.net/
