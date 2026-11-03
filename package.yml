@@ -1,0 +1,18 @@
+package: community.lazycat.app.heyform
+name: HeyForm
+version: 0.0.0
+description: "Form builder for surveys, quizzes and polls: drag-and-drop questions, logic jumps and response analytics."
+min_os_version: "1.5.0"
+homepage: https://heyform.net/
+author: HeyForm
+license: AGPL-3.0
+permissions:
+  required:
+    - net.internet
+locales:
+  zh:
+    name: HeyForm
+    description: "表单搭建：拖拽式制作问卷、测验和投票，支持逻辑跳转与答卷分析。"
+  en:
+    name: HeyForm
+    description: "Form builder for surveys, quizzes and polls: drag-and-drop questions, logic jumps and response analytics."

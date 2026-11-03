@@ -1,0 +1,85 @@
+application:
+  subdomain: heyform
+  multi_instance: false
+  # The app ships its own sign-up / sign-in screens, so it is exposed directly
+  # and authenticates users itself.
+  public_path:
+    - /
+  upstreams:
+    - location: /
+      backend: http://heyform:9157/
+
+services:
+  mongo:
+    image: docker.1ms.run/library/mongo:8.0
+    environment:
+      - MONGO_INITDB_DATABASE=heyform
+    binds:
+      - /lzcapp/var/mongo:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval 'db.adminCommand(\"ping\")' || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  redis:
+    image: docker.1ms.run/library/redis:8-alpine
+    # Bull queue backend only; nothing here needs to survive a restart.
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  heyform:
+    # upstream: heyform/community-edition:3.0.6
+    image: docker.1ms.run/heyform/community-edition:3.0.6
+    environment:
+      - NODE_ENV=production
+      # Must be the address users actually visit, otherwise login breaks
+      # (the app builds redirect and cookie URLs from it).
+      - APP_HOMEPAGE_URL=https://{{ .S.AppDomain }}
+      # The entry sits in front of the container and forwards the real client
+      # address, so the app must trust the proxy headers.
+      - TRUST_PROXY=true
+      - CORS_ALLOWED_ORIGINS=https://{{ .S.AppDomain }}
+      # The image defaults both of these to the literal strings "key1" / "key2";
+      # leaving them in place would make sessions and encrypted form data
+      # forgeable, so they are replaced with per-install secrets.
+      - SESSION_KEY={{ stable_secret "session_key" }}
+      - FORM_ENCRYPTION_KEY={{ stable_secret "form_encryption_key" }}
+      - MONGO_URI=mongodb://mongo:27017/heyform
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      # Upstream defaults this to true and its own comment warns that with no
+      # SMTP configured "nobody can finish signing up". No SMTP here, so it must
+      # be off or the first account could never be created.
+      - VERIFY_USER_EMAIL=false
+      # Keep in-app e-mail/password sign-up available as the only login path.
+      - DISABLE_LOGIN_WITH_PASSWORD=false
+    binds:
+      - /lzcapp/var/uploads:/app/packages/server/uploads
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9157/ || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 15
+      start_period: 90s
+    depends_on:
+      - mongo
+      - redis
+
+usage: |
+  HeyForm 是表单搭建工具：用拖拽方式制作问卷、测验、投票和报名表，
+  支持逻辑跳转、自定义主题，并查看和导出答卷。
+
+  - 首次访问用邮箱和密码注册即可，注册后即可创建表单；应用自带账号体系，
+    所以它直接对外开放（public_path），登录与权限都由 HeyForm 自己负责。
+  - 后台由 MongoDB（存表单与答卷）和 Redis（后台任务队列）组成，均在应用内部，
+    不需要你另外准备数据库。
+  - **邮件发送未配置**：注册时的邮箱验证已关闭，否则收不到验证码就没人能注册完成；
+    表单收集、邀请协作者等依赖邮件的功能需要你自己再接 SMTP 后才能用。
+  - 未做真机验证：注册登录、创建表单、提交答卷、逻辑跳转以及重启后数据留存
+    均未在设备上实测。
